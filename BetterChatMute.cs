@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Linq;
 using Oxide.Core;
 using Oxide.Core.Libraries.Covalence;
+using Oxide.Core.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,11 +12,15 @@ namespace Oxide.Plugins
 {
     [Info("Better Chat Mute", "LaserHydra", "1.2.1")]
     [Description("Simple mute system, made for use with Better Chat")]
+
     internal class BetterChatMute : CovalencePlugin
     {
         private static Dictionary<string, MuteInfo> _mutes;
         private bool _isDataDirty, _globalMute;
-        
+            
+        // skooma added GUIAnnouncements compat
+        [PluginReference] private Plugin GUIAnnouncements;
+
         #region Hooks
 
         private void Loaded()
@@ -191,7 +196,8 @@ namespace Oxide.Plugins
             if (timeSpan == null)
             {
                 Interface.CallHook("OnBetterChatMuted", target, player, reason);
-
+                String formattedText = string.Format("{0} was muted permanently with reason: {1}", SanitizeName(target.Name), reason);
+                GUIAnnouncements?.Call("CreateAnnouncement", formattedText, "Grey", "Yellow");
                 PublicMessage("Muted",
                     new KeyValuePair<string, string>("initiator", SanitizeName(player.Name)),
                     new KeyValuePair<string, string>("player", SanitizeName(target.Name)),
@@ -200,7 +206,8 @@ namespace Oxide.Plugins
             else
             {
                 Interface.CallHook("OnBetterChatTimeMuted", target, player, (TimeSpan) timeSpan, reason);
-
+                String formattedText = string.Format("{0} was muted for {1} with reason: {2}", SanitizeName(target.Name), FormatTime((TimeSpan) timeSpan), reason);
+                GUIAnnouncements?.Call("CreateAnnouncement", formattedText, "Grey", "Yellow");
                 PublicMessage("Muted Time",
                     new KeyValuePair<string, string>("initiator", SanitizeName(player.Name)),
                     new KeyValuePair<string, string>("player", SanitizeName(target.Name)),
